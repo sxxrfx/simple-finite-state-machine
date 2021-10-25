@@ -1,48 +1,48 @@
 use std::io::{self, BufRead, Write};
 
-#[derive(Debug)]
-enum State {
-    Locked,
-    Unlocked,
+const LOCKED: usize = 0;
+const UNLOCKED: usize = 1;
+const STATES_COUNT: usize = 2;
+
+const PUSH: usize = 0;
+const COIN: usize = 1;
+const EVENTS_COUNT: usize = 2;
+
+const FSM: [[usize; EVENTS_COUNT]; STATES_COUNT] = [
+    //PUSH   COIN
+    [LOCKED, UNLOCKED], // LOCKED
+    [LOCKED, UNLOCKED], // UNLOCKED
+];
+
+fn next_state(state: usize, event: usize) -> usize {
+    FSM[state][event]
 }
 
-#[derive(Debug)]
-enum Event {
-    Push,
-    Coin,
-}
-
-#[allow(dead_code)]
-fn next_state(state: State, event: Event) -> State {
+fn state_to_str(state: usize) -> &'static str {
     match state {
-        State::Locked => match event {
-            Event::Coin => State::Unlocked,
-            Event::Push => State::Locked,
-        },
-        State::Unlocked => match event {
-            Event::Coin => State::Unlocked,
-            Event::Push => State::Locked,
-        },
+        LOCKED => "Locked",
+        UNLOCKED => "Unlocked",
+        _ => unreachable!(),
     }
 }
 
 fn main() {
-    let mut state = State::Locked;
+    let mut state = LOCKED;
     let stdin = std::io::stdin();
 
-    println!("State: {:?}", state);
+    println!("State: {}", state_to_str(state));
 
     // User input
     print!("> ");
     io::stdout().flush().unwrap();
     for line in stdin.lock().lines() {
         match line.unwrap().as_str() {
-            "coin" => state = next_state(state, Event::Coin),
-            "push" => state = next_state(state, Event::Push),
+            "coin" => state = next_state(state, COIN),
+            "push" => state = next_state(state, PUSH),
             "quit" => return,
             _unknown => eprintln!("ERROR: Only 'coin', 'push' OR 'quit' are allowed"),
         }
-        println!("State: {:?}", state);
+        println!("State: {}", state_to_str(state));
         print!("> ");
         io::stdout().flush().unwrap();
     }
